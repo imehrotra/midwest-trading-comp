@@ -3,7 +3,8 @@
 from algo_client import *
 from pprint import pprint
 from vollib import black_scholes as b_s
-import greeks_new.py as g
+from greeks_new import Greeks
+#import greeks_new.py as g
 from datetime import datetime
 
 
@@ -69,8 +70,8 @@ def priceAndGreekData(algo_client):
 		date_format = "%Y-%m-%d"
 		curr_date = datetime.strptime(time, date_format)
 		expiry = datetime(2017, 6, 16)
-		delta = expiry - curr_date
-		time_to_expiry = delta.days/365.25
+		date_diff = expiry - curr_date
+		time_to_expiry = date_diff.days/365.0
 
 		#get underlying price
 
@@ -79,7 +80,22 @@ def priceAndGreekData(algo_client):
 		iv = g.implied_vol(flag, ltp, 2300, strike_price, time_to_expiry, 0.01)
 		iv_list[x-1] = iv
 ##########################################################################################
+calls = []
+puts = []
 
+given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
+interest = .01
+time_to_expiry = 70/252
+greeks = Greeks(algo_client, “ESM7”, given_strikes, interest, time_to_expiry)
+iv = greeks.return_implied_vol()
+strike = given_strikes[x]
+calls[x] = iv[strike][0]
+puts[x] = iv[strike][1]
+
+#do i need underlying
+
+deltas = greeks.return_delta()
+238000_call_delta = deltas[238000][0]
 
 
 	# 	curr_year = int(time[:3])
