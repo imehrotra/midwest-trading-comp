@@ -19,33 +19,22 @@ def ourOrderBook(algo_client):
 		for key in book:
 			book.get(key,None)
 
-def priceAndGreekData(algo_client):
-	instrument_c1 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "C2200")
-	instrument_p1 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "P2200")
-	instrument_c2 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "C2200")
-	instrument_p2 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "P2200")
-	instrument_c3 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "C2200")
-	instrument_p3 = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "P2200")
 
-	market_depth_c1 = algo_client.getMarketData(instrument_c1)
-	trade_data_c1 = algo_client.getTradeData(instrument_c1)
-	market_depth_p1 = algo_client.getMarketData(instrument_p1)
-	trade_data_p1 = algo_client.getTradeData(instrument_p1)
+def timeToExpiry():
+	time = trade_data['time']
+	date_format = "%Y-%m-%d"
+	curr_date = datetime.strptime(time, date_format)
+	expiry = datetime(2017, 6, 16)
+	delta = expiry - curr_date
+	return time_to_expiry = delta.days/365
 
-	market_depth_c2 = algo_client.getMarketData(instrument_c2)
-	trade_data_c2 = algo_client.getTradeData(instrument_c2)
-	market_depth_p2 = algo_client.getMarketData(instrument_p2)
-	trade_data_p2 = algo_client.getTradeData(instrument_p2)
-
-	market_depth_c3 = algo_client.getMarketData(instrument_c3)
-	trade_data_c3 = algo_client.getTradeData(instrument_c3)
-	market_depth_p3 = algo_client.getMarketData(instrument_p3)
-	trade_data_p3 = algo_client.getTradeData(instrument_p3)
-
+def impliedVolList(algo_client):
 ##########################################################################################
 	given_strikes = ["C2200", "P2200", "C2225", "P2225", "C2175", "P2175"]
 	options = []
 	iv_list = []
+	#get last traded price
+	ltp = trade_data['ltp']
 	for x in xrange(1,6):
 		strikes = {}
 
@@ -57,8 +46,6 @@ def priceAndGreekData(algo_client):
 		strikes['trade_data'] = trade_data
 		options[x-1] = strikes #is this right?
 
-		#get last traded price
-		ltp = trade_data['ltp']
 
 		#get call put flag
 		flag = strike_numstr[0]
@@ -66,20 +53,25 @@ def priceAndGreekData(algo_client):
 		strike_price = strike_numstr[1:]
 
 		#calculate time to expiry (use py time funcs)
+<<<<<<< HEAD
 		time = trade_data['time']
 		date_format = "%Y-%m-%d"
 		curr_date = datetime.strptime(time, date_format)
 		expiry = datetime(2017, 6, 16)
 		date_diff = expiry - curr_date
 		time_to_expiry = date_diff.days/365.0
+=======
+		tToE = time_to_expiry()
+>>>>>>> ba2122e40e0561d027e480814e230da2c2a8b8f5
 
 		#get underlying price
 
 
 		#solve for implied vol and store in list
-		iv = g.implied_vol(flag, ltp, 2300, strike_price, time_to_expiry, 0.01)
+		iv = g.implied_vol(flag, ltp, 2300, strike_price, tToE, 0.01)
 		iv_list[x-1] = iv
 ##########################################################################################
+<<<<<<< HEAD
 calls = []
 puts = []
 
@@ -96,6 +88,40 @@ puts[x] = iv[strike][1]
 
 deltas = greeks.return_delta()
 238000_call_delta = deltas[238000][0]
+=======
+
+def theoreticalPricer(l):
+	given_strikes = ["C2200", "P2200", "C2225", "P2225", "C2175", "P2175"]
+	for x in xrange(1,6):
+		strike_numstr = given_strikes[x]
+		strikePrice[x-1] = strike_numstr[1:]
+	greeks = Greeks(algo_client,"ESM7", strikePrice,.01, time_to_expiry())
+	deltas = g.return_delta()
+	vegas = g.return_vega()
+	for x in xrange(1,6):
+		if strike_numstr[0] == 'C':
+			flag = 0
+		else:
+			flag = 1
+		delta =  deltas[strike_numstr[1:]][flag]
+		vega = vegas[strike_numstr[1:]][flag]
+		if flag == 0:
+			CPflag = 'c'
+		else
+			CPflag == 'p'
+		theoreticalPrice[x-1] = b_s.black_scholes(CPflag,2300,strikePrice[x-1],time_to_expiry(),.01,iv_list[x-1])
+
+def orderExecutor(algo_client):
+	book = algo_client.getOrderBook()
+
+	if book:
+		for key in 
+
+        
+
+
+
+>>>>>>> ba2122e40e0561d027e480814e230da2c2a8b8f5
 
 
 	# 	curr_year = int(time[:3])
