@@ -62,7 +62,7 @@ def impliedVolList(algo_client):
 		time_to_expiry = date_diff.days/365.0
 =======
 		tToE = time_to_expiry()
->>>>>>> ba2122e40e0561d027e480814e230da2c2a8b8f5
+
 
 		#get underlying price
 
@@ -71,27 +71,26 @@ def impliedVolList(algo_client):
 		iv = g.implied_vol(flag, ltp, 2300, strike_price, tToE, 0.01)
 		iv_list[x-1] = iv
 ##########################################################################################
-<<<<<<< HEAD
-calls = []
-puts = []
+<<<<< HEAD
+	calls = []
+	puts = []
 
-given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
-interest = .01
-time_to_expiry = 70/252
-greeks = Greeks(algo_client, “ESM7”, given_strikes, interest, time_to_expiry)
-iv = greeks.return_implied_vol()
-strike = given_strikes[x]
-calls[x] = iv[strike][0]
-puts[x] = iv[strike][1]
+	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
+	interest = .01
+	time_to_expiry = 70/252
+	greeks = Greeks(algo_client, “ESM7”, given_strikes, interest, time_to_expiry)
+	iv = greeks.return_implied_vol()
+	strike = given_strikes[x]
+	calls[x] = iv[strike][0]
+	puts[x] = iv[strike][1]
 
-#do i need underlying
+	#do i need underlying
 
-deltas = greeks.return_delta()
-238000_call_delta = deltas[238000][0]
+	deltas = greeks.return_delta()
+	238000_call_delta = deltas[238000][0]
 =======
 
 def theoreticalPricer(l):
-	given_strikes = ["C2200", "P2200", "C2225", "P2225", "C2175", "P2175"]
 	for x in xrange(1,6):
 		strike_numstr = given_strikes[x]
 		strikePrice[x-1] = strike_numstr[1:]
@@ -112,48 +111,70 @@ def theoreticalPricer(l):
 		theoreticalPrice[x-1] = b_s.black_scholes(CPflag,2300,strikePrice[x-1],time_to_expiry(),.01,iv_list[x-1])
 
 def orderExecutor(algo_client):
-	book = algo_client.getOrderBook()
+	
+	algo_name = "shitty algorithm"
+	algo_client.addAlgoInsturment(algo_name)
+	algo_parameters = algo_client.getUserParameters(algo_name)
+	algo_exportValues = algo_client.getExportValues(algo_name)
+    market_depth = algo_client.getMarketData(instrument)
 
-	if book:
-		for key in 
+    if market_depth["bids"]:
+    	best_bid_price = market_depth["bids"][0]["p"]
+    	best_bid_qty = market_depth["bids"][0]["q"]
+    if market_depth["asks"]:
+    	best_ask_price = market_depth["asks"][0]["p"]
+    	best_ask_qty = market_depth["asks"][0]["q"]
 
+    for x in xrange(1,6):
+    	if theoreticalPrice[x-1] < best_bid_price:
+    		buyPrice = (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 - .25
+    		order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
+    	if theoreticalPrice[x-1] > best_ask_price:
+    		sellPrice= (best_bid_price + best_ask price)/2 + theoreticalPrice[x-1] / 2 + .25
+    		order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
+#def hedger(algo_client):
+#	position = algo_client.getPositions()
+
+#	for key, value in position.iteritems():
+#		if value != None:
+#			given_strikes
+
+
+def algo_callback(name, data):
+
+    # callback whenever ER, price update, position update/delete, export value is received
+
+    log.info("{} callback".format(name))
+    # print(data)
+    # pprint(data)  # pretty formatting
+
+
+if __name__ == "__main__":
+
+    # a valid account must be specified in the instrument block, no support to change the account
+    # does not support user-defined data types
+    # algo field must be defined as user_defined in order to modify them
+
+    username = "mtcjhouse@gmail.com"
+    password = "jannotta2017!"
+
+    algo_client = Algo_Client(username, password, algo_callback)
+
+    priceDataExample(algo_client)
+
+    bbook = algo_client.getBookieOrderBook()
+
+    # retrieve account positions, will also receive all account instrument positions in the callback function
+    positions = algo_client.getPositions()
+    
+    impliedVolList(algo_client)
+    theoreticalPricer(algo_client)
+    orderExecutor(algo_client)
+    hedger(algo_client)
+
+    # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
+    book = algo_client.getOrderBook()
         
-
-
-
->>>>>>> ba2122e40e0561d027e480814e230da2c2a8b8f5
-
-
-	# 	curr_year = int(time[:3])
-	# 	curr_month = int(time[5:6])
-	# 	curr_day = int(time[8:9]) #are these nums right?
-	# 	if curr_month > 7:
-	# 		year = 2016 - curr_year
-	# 	else:
-	# 		year = 2017 - curr_year
-	# 		month = 6 - curr_month
-	# 	year = 2017 - curr_year
-	# 	month = 
- # 'time': '2017-02-16 09:29:41.261',
-
-#TODO
-#1. Pick an option/price (python API)
-
-
-
-#2. Back out implied volatility (vollib)
-#vollib.black_scholes.implied_volatility.implied_volatility(price, S, K, t, r, flag)
-#it's in greeks calculator!
-def back_out(CallPutFlag, price, underlying, strike, time_to_expiry, interest):
-	return g.implied_vol(CallPutFlag, price, underlying, strike, time_to_expiry, interest)
-#how do I get the inputs, need to access market and trade data...wait it does it for me so just take it from what greeks outputs...
-#ok so now how do I use given greeks calculator
-
-#3. Take IV and calculate theoretical price of other options (vollib)
-	return b_s.black_scholes(flag, S, K, t, r, sigma)
-#4. Find differences between actual option price and theoretical (math/coding)
-
-#5. Make market (greatest->least) (TBD)
 
 #6. Hedge 
 
