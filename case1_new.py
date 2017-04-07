@@ -1,7 +1,10 @@
 import numpy as np
 import statsmodels.api as sm
 import time as time
-import algo_client as *
+from algo_client import *
+import algo_client
+algo_client.ENV = "ext-prod-sim"
+
 
 START_TIME = time.time() #measures time in second
 
@@ -63,7 +66,7 @@ def eval_reg(beta, epsilon, x1, x2, x2_p, dict_of_dict, algo_client):
 		#calculate y
 		y = beta*price + epsilon
 
-		ret = market_size(y-x2_p, dict_of_dict["("+x1+","+x2+")"])
+		ret = market_size(x2_p-y, dict_of_dict["("+x1+","+x2+")"])
 		send_order(algo_client, (instrument1, instrument2), ret, market_data)
 
 
