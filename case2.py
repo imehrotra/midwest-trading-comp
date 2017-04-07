@@ -76,10 +76,10 @@ def impliedVolList(algo_client):
 	calls = []
 	puts = []
 
-	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
+	given_strikes = [2340, 2345, 2350, 2355, 2360, 2365, 2370, 2375, 2380]
 	interest = .01
 	time_to_expiry = 70/252
-	greeks = Greeks(algo_client, “ESM7”, given_strikes, interest, time_to_expiry)
+	greeks = Greeks(algo_client, "ESM7", given_strikes, interest, time_to_expiry)
 	iv = greeks.return_implied_vol()
 	strike = given_strikes[x]
 	calls[x] = iv[strike][0]
@@ -88,10 +88,10 @@ def impliedVolList(algo_client):
 	#do i need underlying
 
 	deltas = greeks.return_delta()
-	238000_call_delta = deltas[238000][0]
-=======
+	call_delta = deltas[2380][0]
+#=======
 
-def theoreticalPricer(l):
+def theoreticalPricer(algo_client):
 	for x in xrange(1,6):
 		strike_numstr = given_strikes[x]
 		strikePrice[x-1] = strike_numstr[1:]
@@ -107,7 +107,7 @@ def theoreticalPricer(l):
 		vega = vegas[strike_numstr[1:]][flag]
 		if flag == 0:
 			CPflag = 'c'
-		else
+		else:
 			CPflag == 'p'
 		theoreticalPrice[x-1] = b_s.black_scholes(CPflag,2300,strikePrice[x-1],time_to_expiry(),.01,iv_list[x-1])
 
@@ -117,22 +117,22 @@ def orderExecutor(algo_client):
 	algo_client.addAlgoInsturment(algo_name)
 	algo_parameters = algo_client.getUserParameters(algo_name)
 	algo_exportValues = algo_client.getExportValues(algo_name)
-    market_depth = algo_client.getMarketData(instrument)
+	market_depth = algo_client.getMarketData(instrument)
 
-    if market_depth["bids"]:
-    	best_bid_price = market_depth["bids"][0]["p"]
-    	best_bid_qty = market_depth["bids"][0]["q"]
-    if market_depth["asks"]:
-    	best_ask_price = market_depth["asks"][0]["p"]
-    	best_ask_qty = market_depth["asks"][0]["q"]
+	if market_depth["bids"]:
+		best_bid_price = market_depth["bids"][0]["p"]
+		best_bid_qty = market_depth["bids"][0]["q"]
+	if market_depth["asks"]:
+		best_ask_price = market_depth["asks"][0]["p"]
+		best_ask_qty = market_depth["asks"][0]["q"]
 
-    for x in xrange(1,6):
-    	if theoreticalPrice[x-1] < best_bid_price:
-    		buyPrice = (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 - .25
-    		order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
-    	if theoreticalPrice[x-1] > best_ask_price:
-    		sellPrice= (best_bid_price + best_ask price)/2 + theoreticalPrice[x-1] / 2 + .25
-    		order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
+	for x in xrange(1,6):
+		if theoreticalPrice[x-1] < best_bid_price:
+			buyPrice = (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 - .25
+			order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
+		if theoreticalPrice[x-1] > best_ask_price:
+			sellPrice= (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 + .25
+			order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
 #def hedger(algo_client):
 #	position = algo_client.getPositions()
 
@@ -145,7 +145,7 @@ def algo_callback(name, data):
 
     # callback whenever ER, price update, position update/delete, export value is received
 
-    log.info("{} callback".format(name))
+	log.info("{} callback".format(name))
     # print(data)
     # pprint(data)  # pretty formatting
 
@@ -156,25 +156,25 @@ if __name__ == "__main__":
     # does not support user-defined data types
     # algo field must be defined as user_defined in order to modify them
 
-    username = "mtcjhouse@gmail.com"
-    password = "jannotta2017!"
+	username = "mtcjhouse@gmail.com"
+	password = "jannotta2017!"
 
-    algo_client = Algo_Client(username, password, algo_callback)
+	algo_client = Algo_Client(username, password, algo_callback)
 
-    priceDataExample(algo_client)
+	priceDataExample(algo_client)
 
-    bbook = algo_client.getBookieOrderBook()
+	bbook = algo_client.getBookieOrderBook()
 
     # retrieve account positions, will also receive all account instrument positions in the callback function
-    positions = algo_client.getPositions()
+	positions = algo_client.getPositions()
     
-    impliedVolList(algo_client)
-    theoreticalPricer(algo_client)
-    orderExecutor(algo_client)
+	impliedVolList(algo_client)
+	theoreticalPricer(algo_client)
+	orderExecutor(algo_client)
     ##hedger(algo_client)
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
-    book = algo_client.getOrderBook()
+	book = algo_client.getOrderBook()
         
 
 #6. Hedge 
