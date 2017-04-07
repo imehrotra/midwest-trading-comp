@@ -2,7 +2,7 @@
 from algo_client import *
 from pprint import pprint
 from vollib import black_scholes as b_s
-from greeks import Greeks
+from greeks_new import Greeks
 #import greeks_new.py as g
 from datetime import datetime
 import algo_client
@@ -30,111 +30,62 @@ def timeToExpiry(algo_client):
 	time_to_expiry = delta/365
 	return time_to_expiry
 
-def impliedVolList(algo_client):
-##########################################################################################
-	given_strikes = ["C2200", "P2200", "C2225", "P2225", "C2175", "P2175"]
-	options = []
-	iv_list = []
-	#get last traded price
-	ltp = trade_data['ltp']
-	for x in xrange(1,6):
-		strikes = {}
-
-		# store instrument and trade data
-		strike_numstr = given_strikes[x]
-		instrument = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = strike_numstr)
-		trade_data = algo_client.getTradeData(instrument)
-		strikes['instrument'] = instrument
-		strikes['trade_data'] = trade_data
-		options[x-1] = strikes #is this right?
-
-
-		#get call put flag
-		flag = strike_numstr[0]
-		#get strike price
-		strike_price = strike_numstr[1:]
-
-		#calculate time to expiry (use py time funcs)
-#<<<<<<< HEAD
-#		time = trade_data['time']
-#		date_format = "%Y-%m-%d"
-#		curr_date = datetime.strptime(time, date_format)
-#		expiry = datetime(2017, 6, 16)
-#		date_diff = expiry - curr_date
-#		time_to_expiry = date_diff.days/365.0
-#=======
-		tToE = time_to_expiry()
-
-
-		#get underlying price
-
-
-		#solve for implied vol and store in list
-		iv = g.implied_vol(flag, ltp, 2300, strike_price, tToE, 0.01)
-		iv_list[x-1] = iv
-##########################################################################################
-#<<<<< HEAD
-	calls = []
-	puts = []
-
-	given_strikes = [2340, 2345, 2350, 2355, 2360, 2365, 2370, 2375, 2380]
-	interest = .01
-	time_to_expiry = 70/252
-	greeks = Greeks(algo_client, "ESM7", given_strikes, interest, time_to_expiry)
-	iv = greeks.return_implied_vol()
-	strike = given_strikes[x]
-	calls[x] = iv[strike][0]
-	puts[x] = iv[strike][1]
-
-	#do i need underlying
-
-	deltas = greeks.return_delta()
-	call_delta = deltas[2380][0]
-#=======
 
 def theoreticalPricer(algo_client):
-	for x in xrange(1,6):
-		strike_numstr = given_strikes[x]
-		strikePrice[x-1] = strike_numstr[1:]
-	greeks = Greeks(algo_client,"ESM7", strikePrice,.01, time_to_expiry())
-	deltas = g.return_delta()
-	vegas = g.return_vega()
-	for x in xrange(1,6):
-		if strike_numstr[0] == 'C':
-			flag = 0
-		else:
-			flag = 1
-		delta =  deltas[strike_numstr[1:]][flag]
-		vega = vegas[strike_numstr[1:]][flag]
-		if flag == 0:
-			CPflag = 'c'
-		else:
-			CPflag == 'p'
-		theoreticalPrice[x-1] = b_s.black_scholes(CPflag,2300,strikePrice[x-1],time_to_expiry(),.01,iv_list[x-1])
+	calls = []
+	puts = []
+	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
+	interest = .01
+	time_to_expiry = float(70/252)
+	greeks = Greeks(algo_client, "ESM7", given_strikes, .01, time_to_expiry)
+	iv = greeks.return_implied_vol()
+	for x in xrange(1,3):
+		calls.append(iv[given_strikes[x-1]][0])
+		puts.append(iv[given_strikes[x-1]][1])
+	theoreticalPrice = {}
+	for x in xrange(1,3): 
+		theoreticalPrice[ "C" + str(given_strikes[x-1])] = b_s.black_scholes('c',230000,given_strikes[x-1],time_to_expiry,.01,calls[x-1])
+		theoreticalPrice[ "P" + str(given_strikes[x-1])] = b_s.black_scholes('p',230000,given_strikes[x-1], time_to_expiry,.01,puts[x-1])
+	return theoreticalPrice
+		
 
 def orderExecutor(algo_client):
-	
+	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
 	algo_name = "shitty algorithm"
-	algo_client.addAlgoInsturment(algo_name)
+	algo_client.addAlgoInstrument(algo_name)
+	instrument = {}
+	for x in xrange(1,3):
+		instrument["C" + str(given_strikes[x-1])] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "C" + str(given_strikes[x-1]))
+		instrument["P" + str(given_strikes[x-1])] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "P" + str(given_strikes[x-1]))
+	market_depth = {}
+	for key in instrument.iteritems(): 
+		market_depth[key] = algo_client.getMarketData(instrument[key])
+
 	algo_parameters = algo_client.getUserParameters(algo_name)
 	algo_exportValues = algo_client.getExportValues(algo_name)
-	market_depth = algo_client.getMarketData(instrument)
 
-	if market_depth["bids"]:
-		best_bid_price = market_depth["bids"][0]["p"]
-		best_bid_qty = market_depth["bids"][0]["q"]
-	if market_depth["asks"]:
-		best_ask_price = market_depth["asks"][0]["p"]
-		best_ask_qty = market_depth["asks"][0]["q"]
+	best_bid_price = {}
+	best_bid_qty = {}
+	best_ask_price = {}
+	best_ask_qty = {}
+	for key in market_depth.iteritems():
+		if market_depth[key]["bids"]:
+			best_bid_price[key] = market_depth[key]["bids"][0]["p"]
+			best_bid_qty[key] = market_depth[key]["bids"][0]["q"]
+		if market_depth[key]["asks"]:
+			best_ask_price = market_depth[key]["asks"][0]["p"]
+			best_ask_qty = market_depth[key]["asks"][0]["q"]
 
-	for x in xrange(1,6):
-		if theoreticalPrice[x-1] < best_bid_price:
-			buyPrice = (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 - .25
+	theoretical_Price = theoreticalPricer(algo_client)
+	for key in theoretical_Price.iteritems():
+		if theoretical_Price[key] < best_bid_price[key]:
+			buyPrice = (best_bid_price + best_ask_price)/2 + theoretical_Price[key] / 2 - .25
 			order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
-		if theoreticalPrice[x-1] > best_ask_price:
+		if theoretical_Price[key] > best_ask_price[key]:
 			sellPrice= (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 + .25
 			order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
-#def hedger(algo_client):
+
+##def hedger(algo_client):
 #	position = algo_client.getPositions()
 
 #	for key, value in position.iteritems():
@@ -149,7 +100,7 @@ def process_orders(name, data):
 		log.info("{} order_id={} side={} price={} qty={} last_qty={} exec_type={} ord_status={}".format(name, data["order_id"], data.get("side", None), data.get("price", None), data.get("order_qty", None), data.get("last_qty", None), data.get("exec_type", None), data.get("ord_status", None) ))
 	else:
 		log.info("{} callback".format(name))
-		print(data)
+		#print(data)
     # pprint(data)  # pretty formatting
 
 def process_prices(name, data):
@@ -171,7 +122,7 @@ def process_positions(name, data):
     # callback for PositionsUpdate and PositionsDelete messages
 
 	log.info("{} callback".format(name))
-	print(data)
+	#print(data)
     # pprint(data)  # pretty formatting
 
 
@@ -190,10 +141,12 @@ if __name__ == "__main__":
 	algo_client.registerCallbacks(CallbackTypes.Orders, process_orders)
 	algo_client.registerCallbacks(CallbackTypes.Prices, process_prices)
 	algo_client.registerCallbacks(CallbackTypes.Positions, process_positions, timeout=0.1)
+	time_start = time.time()
+	while (time.time() - time_start) < 900: 
+		theoreticalPricer(algo_client)
+		orderExecutor(algo_client)
+		##hedger(algo_client)
 
-	impliedVolList(algo_client)
-	theoreticalPricer(algo_client)
-	orderExecutor(algo_client)
 
 	bbook = algo_client.getBookieOrderBook()
 
