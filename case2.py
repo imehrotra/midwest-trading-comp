@@ -140,13 +140,37 @@ def orderExecutor(algo_client):
 #		if value != None:
 #			given_strikes
 
+def process_orders(name, data):
 
-def algo_callback(name, data):
+    # callback for Execution report and export value messages
 
-    # callback whenever ER, price update, position update/delete, export value is received
+	if "ExecutionReport" in name:
+        log.info("{} order_id={} side={} price={} qty={} last_qty={} exec_type={} ord_status={}".format(name, data["order_id"], data.get("side", None), data.get("price", None), data.get("order_qty", None), data.get("last_qty", None), data.get("exec_type", None), data.get("ord_status", None) ))
+	else:
+		log.info("{} callback".format(name))
+		print(data)
+    # pprint(data)  # pretty formatting
+
+def process_prices(name, data):
+
+    # callback for MarketDepth and TradeData messages
+
+	log.info("{} callback for instrument_id={}".format(name, data["instrument_id"]))
+
+	if data.get("asks", None) is not None and data["asks"]:
+		log.info("   Inside Ask {} x {}".format(data["asks"][0]["q"], data["asks"][0]["p"]))
+    if data.get("bids", None) is not None and data["bids"]:
+		log.info("   Inside Bid {} x {}".format(data["bids"][0]["q"], data["bids"][0]["p"]))
+
+    # print(data)
+    # pprint(data)  # pretty formatting
+
+def process_positions(name, data):
+
+    # callback for PositionsUpdate and PositionsDelete messages
 
 	log.info("{} callback".format(name))
-    # print(data)
+	print(data)
     # pprint(data)  # pretty formatting
 
 
@@ -159,23 +183,24 @@ if __name__ == "__main__":
 	username = "mtcjhouse@gmail.com"
 	password = "jannotta2017!"
 
-	algo_client = Algo_Client(username, password, algo_callback)
-	priceDataExample(algo_client)
+	algo_client = Algo_Client(username, password)
+
+    # register callbacks functions, a separate thread will be create for each callback type
+	algo_client.registerCallbacks(CallbackTypes.Orders, process_orders)
+	algo_client.registerCallbacks(CallbackTypes.Prices, process_prices)
+	algo_client.registerCallbacks(CallbackTypes.Positions, process_positions, timeout=0.1)
+
+	impliedVolList(algo_client)
+	theoreticalPricer(algo_client)
+	orderExecutor(algo_client)
 
 	bbook = algo_client.getBookieOrderBook()
 
     # retrieve account positions, will also receive all account instrument positions in the callback function
 	positions = algo_client.getPositions()
-    
-	impliedVolList(algo_client)
-	theoreticalPricer(algo_client)
-	orderExecutor(algo_client)
-    ##hedger(algo_client)
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
 	book = algo_client.getOrderBook()
-        
 
-#6. Hedge 
 
 
