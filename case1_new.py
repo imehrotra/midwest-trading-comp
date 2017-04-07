@@ -153,7 +153,6 @@ def process_positions(name, data):
     #print(data)
     # pprint(data)  # pretty formatting
 
-<<<<<<< HEAD
 def ourOrderBook(algo_client):
 
     algo_name = "MTC case 1"
@@ -165,8 +164,6 @@ def ourOrderBook(algo_client):
         for key in book:
             book.get(key,None)
 
-=======
->>>>>>> 193d8abcc6cae2cb9acd0ae1357ece11391c8526
 def send_order(algo_client, instruments, order_results, market_data):
     positions = algo_client.getPositions()
     net_positions = positions["net_pos"]
@@ -215,10 +212,7 @@ if __name__ == "__main__":
     algo_client.registerCallbacks(CallbackTypes.Orders, process_orders)
     algo_client.registerCallbacks(CallbackTypes.Prices, process_prices)
     algo_client.registerCallbacks(CallbackTypes.Positions, process_positions, timeout=0.1)
-<<<<<<< HEAD
-=======
-    
->>>>>>> 193d8abcc6cae2cb9acd0ae1357ece11391c8526
+
     time_start = time.time()
     #while (time.time() - time_start) < 900: 
     #   theoreticalPricer(algo_client)
@@ -257,10 +251,6 @@ if __name__ == "__main__":
     #beta_list.sort()
 
     eval_reg(max_beta, epsilon, x1, x2, x2_p, dict_of_dict, algo_client)
-<<<<<<< HEAD
     #now call new func with iterating market data
 
-    
-=======
-    #now call new func with iterating market data
->>>>>>> 193d8abcc6cae2cb9acd0ae1357ece11391c8526
+
