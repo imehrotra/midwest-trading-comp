@@ -2,10 +2,11 @@
 from algo_client import *
 from pprint import pprint
 from vollib import black_scholes as b_s
-from greeks_new import Greeks
+from greeks import Greeks
 #import greeks_new.py as g
 from datetime import datetime
 import algo_client
+import time
 algo_client.ENV = "ext-prod-sim"
 
 def ourOrderBook(algo_client):
@@ -145,7 +146,7 @@ def process_orders(name, data):
     # callback for Execution report and export value messages
 
 	if "ExecutionReport" in name:
-        log.info("{} order_id={} side={} price={} qty={} last_qty={} exec_type={} ord_status={}".format(name, data["order_id"], data.get("side", None), data.get("price", None), data.get("order_qty", None), data.get("last_qty", None), data.get("exec_type", None), data.get("ord_status", None) ))
+		log.info("{} order_id={} side={} price={} qty={} last_qty={} exec_type={} ord_status={}".format(name, data["order_id"], data.get("side", None), data.get("price", None), data.get("order_qty", None), data.get("last_qty", None), data.get("exec_type", None), data.get("ord_status", None) ))
 	else:
 		log.info("{} callback".format(name))
 		print(data)
@@ -159,7 +160,7 @@ def process_prices(name, data):
 
 	if data.get("asks", None) is not None and data["asks"]:
 		log.info("   Inside Ask {} x {}".format(data["asks"][0]["q"], data["asks"][0]["p"]))
-    if data.get("bids", None) is not None and data["bids"]:
+	if data.get("bids", None) is not None and data["bids"]:
 		log.info("   Inside Bid {} x {}".format(data["bids"][0]["q"], data["bids"][0]["p"]))
 
     # print(data)
