@@ -6,6 +6,7 @@ from vollib import black_scholes as b_s
 from greeks_new import Greeks
 #import greeks_new.py as g
 from datetime import datetime
+algo_client.ENV = "ext-prod-sim"
 
 def ourOrderBook(algo_client):
 
@@ -159,7 +160,6 @@ if __name__ == "__main__":
 	password = "jannotta2017!"
 
 	algo_client = Algo_Client(username, password, algo_callback)
-	algo_client.ENV = "ext-prod-sim"
 	priceDataExample(algo_client)
 
 	bbook = algo_client.getBookieOrderBook()
