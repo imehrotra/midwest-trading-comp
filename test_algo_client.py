@@ -19,6 +19,7 @@ __author__ = 'llazzara'
 
 from algo_client import *
 from pprint import pprint
+import time
 
 
 def orderBookExample(algo_client):
@@ -84,29 +85,69 @@ def sendAlgoOrderExample(algo_client):
 
     # submit an algo order - any modifiable parameter can be specified via user_parameters, instrument accounts must be assigned in the algo
     # all execution reports will be sent to the callback function
-    order = algo_client.sendOrder(algo_name, user_parameters={"BaseQty": 15, "AddlQty": 5, "OrderPrice": 236600, "Instr": instrument.instrumentId})
+    order = algo_client.sendOrder(algo_name, user_parameters={"BaseQty": 15, "AddlQty": 5, "OrderPrice": 236600, "Instr": instrument.instrumentId}, side=Side.Buy)
 
     # retrieve current value of export values
     export_values = algo_client.getExportValues(algo_name)
+    pprint(export_values)
 
-    # change algo order in working state
-    algo_client.changeOrder(order, user_parameters={"BaseQty": 8, "PriceFlag": True})
+    time.sleep(2)
+
+    if order.cum_qty == order.order_qty:
+        # change algo order in working state
+        algo_client.changeOrder(order, user_parameters={"BaseQty": 25, "PriceFlag": True})
+    else:
+        # change algo order in working state
+        algo_client.changeOrder(order, user_parameters={"BaseQty": 8, "PriceFlag": True})
+
+    time.sleep(2)
 
     algo_client.pauseOrder(order)
+
+    time.sleep(2)
 
     # change algo order in paused state
     algo_client.changeOrder(order, user_parameters={"BaseQty": 20, "PriceFlag": False})
 
+    time.sleep(2)
+
     algo_client.resumeOrder(order)
+
+    time.sleep(2)
 
     algo_client.deleteOrder(order)
 
-def algo_callback(name, data):
+def process_orders(name, data):
 
-    # callback whenever ER, price update, position update/delete, export value is received
+    # callback for Execution report and export value messages
+
+    if "ExecutionReport" in name:
+        log.info("{} order_id={} side={} price={} qty={} last_qty={} exec_type={} ord_status={}".format(name, data["order_id"], data.get("side", None), data.get("price", None), data.get("order_qty", None), data.get("last_qty", None), data.get("exec_type", None), data.get("ord_status", None) ))
+    else:
+        log.info("{} callback".format(name))
+        print(data)
+    # pprint(data)  # pretty formatting
+
+def process_prices(name, data):
+
+    # callback for MarketDepth and TradeData messages
+
+    log.info("{} callback for instrument_id={}".format(name, data["instrument_id"]))
+
+    if data.get("asks", None) is not None and data["asks"]:
+        log.info("   Inside Ask {} x {}".format(data["asks"][0]["q"], data["asks"][0]["p"]))
+    if data.get("bids", None) is not None and data["bids"]:
+        log.info("   Inside Bid {} x {}".format(data["bids"][0]["q"], data["bids"][0]["p"]))
+
+    # print(data)
+    # pprint(data)  # pretty formatting
+
+def process_positions(name, data):
+
+    # callback for PositionsUpdate and PositionsDelete messages
 
     log.info("{} callback".format(name))
-    # print(data)
+    print(data)
     # pprint(data)  # pretty formatting
 
 
@@ -116,19 +157,24 @@ if __name__ == "__main__":
     # does not support user-defined data types
     # algo field must be defined as user_defined in order to modify them
 
-    username = "mtcjhouse@gmail.com"
-    password = "jannotta2017!"
+    username = "your_ttid@email.com"
+    password = "your_password"
 
-    algo_client = Algo_Client(username, password, algo_callback)
+    algo_client = Algo_Client(username, password)
+
+    # register callbacks functions, a separate thread will be create for each callback type
+    algo_client.registerCallbacks(CallbackTypes.Orders, process_orders)
+    algo_client.registerCallbacks(CallbackTypes.Prices, process_prices)
+    algo_client.registerCallbacks(CallbackTypes.Positions, process_positions, timeout=0.1)
 
     priceDataExample(algo_client)
+
+    sendAlgoOrderExample(algo_client)
 
     bbook = algo_client.getBookieOrderBook()
 
     # retrieve account positions, will also receive all account instrument positions in the callback function
     positions = algo_client.getPositions()
-
-    # sendAlgoOrderExample(algo_client)
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
     book = algo_client.getOrderBook()

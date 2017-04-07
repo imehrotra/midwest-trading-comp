@@ -1,0 +1,3 @@
+2017-04-07 07:38:06,617 | MainThrea | INFO    | Successfully logged into TT as mtcjhouse@gmail.com
+2017-04-07 07:38:07,168 | MainThrea | INFO    | Opening a websocket to an EdgeServer at wss://<function algo_callback at 0x0000000005B64CF8>
+2017-04-07 07:38:07,341 | Reactor T | INFO    | Successfully opened websocket connection to retrieve account positions
