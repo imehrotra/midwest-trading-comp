@@ -128,7 +128,7 @@ if __name__ == "__main__":
     # retrieve account positions, will also receive all account instrument positions in the callback function
     positions = algo_client.getPositions()
 
-    # sendAlgoOrderExample(algo_client)
+    sendAlgoOrderExample(algo_client)
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
     book = algo_client.getOrderBook()
