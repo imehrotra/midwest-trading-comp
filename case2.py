@@ -26,7 +26,8 @@ def timeToExpiry():
 	curr_date = datetime.strptime(time, date_format)
 	expiry = datetime(2017, 6, 16)
 	delta = expiry - curr_date
-	return time_to_expiry = delta.days/365
+	time_to_expiry = delta/365
+	return time_to_expiry
 
 def impliedVolList(algo_client):
 ##########################################################################################
@@ -53,14 +54,14 @@ def impliedVolList(algo_client):
 		strike_price = strike_numstr[1:]
 
 		#calculate time to expiry (use py time funcs)
-<<<<<<< HEAD
-		time = trade_data['time']
-		date_format = "%Y-%m-%d"
-		curr_date = datetime.strptime(time, date_format)
-		expiry = datetime(2017, 6, 16)
-		date_diff = expiry - curr_date
-		time_to_expiry = date_diff.days/365.0
-=======
+#<<<<<<< HEAD
+#		time = trade_data['time']
+#		date_format = "%Y-%m-%d"
+#		curr_date = datetime.strptime(time, date_format)
+#		expiry = datetime(2017, 6, 16)
+#		date_diff = expiry - curr_date
+#		time_to_expiry = date_diff.days/365.0
+#=======
 		tToE = time_to_expiry()
 
 
@@ -71,7 +72,7 @@ def impliedVolList(algo_client):
 		iv = g.implied_vol(flag, ltp, 2300, strike_price, tToE, 0.01)
 		iv_list[x-1] = iv
 ##########################################################################################
-<<<<< HEAD
+#<<<<< HEAD
 	calls = []
 	puts = []
 
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     impliedVolList(algo_client)
     theoreticalPricer(algo_client)
     orderExecutor(algo_client)
-    hedger(algo_client)
+    ##hedger(algo_client)
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
     book = algo_client.getOrderBook()
