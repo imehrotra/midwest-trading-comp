@@ -16,11 +16,11 @@
 ###############################################################################
 
 __author__ = 'llazzara'
-
+import algo_client
 from algo_client import *
 from pprint import pprint
 
-
+algo_client.ENV = "ext-prod-sim"
 def orderBookExample(algo_client):
 
     algo_name = "ES_ALGO_00"

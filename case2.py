@@ -1,12 +1,11 @@
 #author Dope Trading Group
-
+import algo_client
 from algo_client import *
 from pprint import pprint
 from vollib import black_scholes as b_s
 from greeks_new import Greeks
 #import greeks_new.py as g
 from datetime import datetime
-
 
 def ourOrderBook(algo_client):
 
@@ -20,7 +19,7 @@ def ourOrderBook(algo_client):
 			book.get(key,None)
 
 
-def timeToExpiry():
+def timeToExpiry(algo_client):
 	time = trade_data['time']
 	date_format = "%Y-%m-%d"
 	curr_date = datetime.strptime(time, date_format)
@@ -160,7 +159,7 @@ if __name__ == "__main__":
 	password = "jannotta2017!"
 
 	algo_client = Algo_Client(username, password, algo_callback)
-
+	algo_client.ENV = "ext-prod-sim"
 	priceDataExample(algo_client)
 
 	bbook = algo_client.getBookieOrderBook()
