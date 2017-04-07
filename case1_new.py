@@ -12,7 +12,7 @@ def x_list(x1, x2):
     x_arr=[]
     y_arr=[]
 	# store instrument and trade data
-	for x in xrange(1,100):
+	for x in range(1,100):
 		instrument1 = algo_client.getExchangeInstrument(contract_name = x1)
 		trade_data1 = algo_client.getTradeData(instrument)
 		ltp1 = trade_data1.ltp
@@ -120,35 +120,37 @@ def market_size(spread, dict_of_dict):
     return (action, int(x_target), int(y_target))
 
 #current_position- False = shorts, True = call
+#current_position- False = shorts, True = call
 def send_order(algo_client, instruments, order_results, market_data):
     positions = algo_client.getPositions()
     net_positions = positions["net_pos"]
-    current_position = 
 
-    if order_results[0]: 
-        buyPrice = 5 * (market_data["asks"][0]["p"] + market_data["asks"][1]["p"])
-        parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
-        order = algo_client.sendOrder(algo_name, parameter1, side = Side.Buy)
-        sellPrice = 5 * (market_data["bids"][0]["p"] + market_data["bids"][1]["p"])
-        parameter2 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
-        order = algo_client.sendOrder(algo_name, parameter2, side = Side.Sell)
+    if order_results[0][0]: 
+        if order_results[0][1]:
+            buyPrice = (market_data[instruments[0]]["asks"][0]["p"]/2 + market_data[instruments[0]]["asks"][1]["p"]/2)
+            parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
+            order = algo_client.sendOrder(algo_client, parameter1, side = Side.Buy)
+           
+          	sellPrice = (market_data[instruments[1]]["bids"][0]["p"]/2 + market_data[instruments[1]]["bids"][1]["p"]/2)
+            parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+            order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
+        else:
+
+            buyPrice = (market_data[instruments[1]]["asks"][0]["p"]/2 + market_data[instruments[1]]["asks"][1]["p"]/2)
+            parameter1 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+            order = algo_client.sendOrder(algo_client, parameter1, side = Side.Buy)
+           
+            sellPrice = (market_data[instruments[0]]["bids"][0]["p"]/2 + market_data[instruments[0]]["bids"][1]["p"]/2)
+            parameter2 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
+            order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
     else:
-        buyPrice = 5 * (market_data[instruments[0]["bids"][0]["p"] + market_data["bids"][1]["p"]) 
+        sellPrice = (market_data[instruments[0]]["bids"][0]["p"]/2 + market_data[instruments[0]]["bids"][1]["p"]/2)
         parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
-        order = algo_client.sendOrder(algo_name, parameter1, side = Side.Buy)
-        sellPrice = 5 * (market_data["bids"][0]["p"] + market_data["bids"][1]["p"])
-        parameter2 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
-        order = algo_client.sendOrder(algo_name, parameter2, side = Side.Sell)
-    #current positions need to be bought/balanced
-    elif order_rusults[0] == True and order_results[0] != current_position:
-        buyPrice = 5 * (market_data["asks"][0]["p"] + market_data["asks"][1]["p"])
-        parameters = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instrument[0]}      
-        order = algo_client.sendOrder(algo_name, parameters, side = Side.Buy)
-    #current positions need to be sold
-    elif order_rusults[0] == False and order_results[0] != current_position:
-        sellPrice = 5 * (market_data["bids"][0]["p"] + market_data["bids"][1]["p"])
-        parameters = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": sellPrice, "Instr":instrument[0]}      
-        order = algo_client.sendOrder(algo_name, parameters, side = Side.Sell)
+        order = algo_client.sendOrder(algo_client, parameter1, side = Side.Sell)
+       
+        sellPrice = (market_data[instruments[1]]["bids"][0]["p"]/2 + market_data[instruments[1]]["bids"][1]["p"]/2)
+        parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+        order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
 
 
 
