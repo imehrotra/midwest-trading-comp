@@ -1,11 +1,11 @@
 #author Dope Trading Group
-import algo_client
 from algo_client import *
 from pprint import pprint
 from vollib import black_scholes as b_s
 from greeks_new import Greeks
 #import greeks_new.py as g
 from datetime import datetime
+import algo_client
 algo_client.ENV = "ext-prod-sim"
 
 def ourOrderBook(algo_client):
