@@ -34,7 +34,7 @@ def timeToExpiry(algo_client):
 def theoreticalPricer(algo_client):
 	calls = []
 	puts = []
-	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
+	given_strikes = [235000, 235500, 236000]
 	interest = .01
 	time_to_expiry = float(70/252)
 	greeks = Greeks(algo_client, "ESM7", given_strikes, .01, time_to_expiry)
@@ -44,22 +44,22 @@ def theoreticalPricer(algo_client):
 		puts.append(iv[given_strikes[x-1]][1])
 	theoreticalPrice = {}
 	for x in xrange(1,3): 
-		theoreticalPrice[ "C" + str(given_strikes[x-1])] = b_s.black_scholes('c',230000,given_strikes[x-1],time_to_expiry,.01,calls[x-1])
-		theoreticalPrice[ "P" + str(given_strikes[x-1])] = b_s.black_scholes('p',230000,given_strikes[x-1], time_to_expiry,.01,puts[x-1])
+		theoreticalPrice[ "C" + str(given_strikes[x-1])] = b_s.black_scholes('c',235000,given_strikes[x-1],time_to_expiry,.01,calls[x-1])
+		theoreticalPrice[ "P" + str(given_strikes[x-1])] = b_s.black_scholes('p',235000,given_strikes[x-1], time_to_expiry,.01,puts[x-1])
 	return theoreticalPrice
 		
 
 def orderExecutor(algo_client):
-	given_strikes = [234000, 234500, 235000, 235500, 236000, 236500, 237000, 237500, 238000]
-	algo_name = "shitty algorithm"
+	strikes = ["C2350", "C2355", "C2360", "P2350", "P2355","P2360"]
+	algo_name = "CASE2 algorithm"
 	algo_client.addAlgoInstrument(algo_name)
 	instrument = {}
-	for x in xrange(1,3):
-		instrument["C" + str(given_strikes[x-1])] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "C" + str(given_strikes[x-1]))
-		instrument["P" + str(given_strikes[x-1])] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = "P" + str(given_strikes[x-1]))
+	for x in xrange(1,6):
+		instrument[strikes[x-1]] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = strikes[x-1])
+		instrument[strikes[x-1]] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = strikes[x-1])
 	market_depth = {}
-	for key in instrument.iteritems(): 
-		market_depth[key] = algo_client.getMarketData(instrument[key])
+	for x in xrange(1,6):
+		market_depth.update({strikes[x-1]:algo_client.getMarketData(instrument[strikes[x-1]])})
 
 	algo_parameters = algo_client.getUserParameters(algo_name)
 	algo_exportValues = algo_client.getExportValues(algo_name)
@@ -68,22 +68,22 @@ def orderExecutor(algo_client):
 	best_bid_qty = {}
 	best_ask_price = {}
 	best_ask_qty = {}
-	for key in market_depth.iteritems():
-		if market_depth[key]["bids"]:
-			best_bid_price[key] = market_depth[key]["bids"][0]["p"]
-			best_bid_qty[key] = market_depth[key]["bids"][0]["q"]
-		if market_depth[key]["asks"]:
-			best_ask_price = market_depth[key]["asks"][0]["p"]
-			best_ask_qty = market_depth[key]["asks"][0]["q"]
+	for x in xrange(1,3):
+		if market_depth[strikes[x-1]]["bids"]:
+			best_bid_price[strikes[x-1]] = market_depth[strikes[x-1]]["bids"][0]["p"]
+			best_bid_qty[strikes[x-1]] = market_depth[strikes[x-1]]["bids"][0]["q"]
+		if market_depth[strikes[x-1]]["asks"]:
+			best_ask_price[strikes[x-1]] = market_depth[strikes[x-1]]["asks"][0]["p"]
+			best_ask_qty[strikes[x-1]] = market_depth[strikes[x-1]]["asks"][0]["q"]
 
 	theoretical_Price = theoreticalPricer(algo_client)
+	x = 0
 	for key in theoretical_Price.iteritems():
-		if theoretical_Price[key] < best_bid_price[key]:
-			buyPrice = (best_bid_price + best_ask_price)/2 + theoretical_Price[key] / 2 - .25
+			buyPrice = (best_bid_price[strikes[x]] + best_ask_price[strikes[x]])/2 + theoretical_Price[key] / 2 - .25
 			order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
-		if theoretical_Price[key] > best_ask_price[key]:
-			sellPrice= (best_bid_price + best_ask_price)/2 + theoreticalPrice[x-1] / 2 + .25
+			sellPrice= (best_bid_price[strikes[x]] + best_ask_price[strikes[x]])/2 + theoreticalPrice[key] / 2 + .25
 			order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
+			x += 1
 
 ##def hedger(algo_client):
 #	position = algo_client.getPositions()
