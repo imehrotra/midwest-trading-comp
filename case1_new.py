@@ -171,28 +171,28 @@ def send_order(algo_client, instruments, order_results, market_data):
     if order_results[0][0]: 
         if order_results[0][1]:
             buyPrice = (market_data[instruments[0]]["asks"][0]["p"]/2 + market_data[instruments[0]]["asks"][1]["p"]/2)
-            parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
+            parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0].instrumentId}      
             order = algo_client.sendOrder(algo_client, parameter1, side = Side.Buy)
            
             sellPrice = (market_data[instruments[1]]["bids"][0]["p"]/2 + market_data[instruments[1]]["bids"][1]["p"]/2)
-            parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+            parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1].instrumentId}      
             order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
         else:
 
             buyPrice = (market_data[instruments[1]]["asks"][0]["p"]/2 + market_data[instruments[1]]["asks"][1]["p"]/2)
-            parameter1 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+            parameter1 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1].instrumentId}      
             order = algo_client.sendOrder(algo_client, parameter1, side = Side.Buy)
            
             sellPrice = (market_data[instruments[0]]["bids"][0]["p"]/2 + market_data[instruments[0]]["bids"][1]["p"]/2)
-            parameter2 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
+            parameter2 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0].instrumentId}      
             order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
     else:
         sellPrice = (market_data[instruments[0]]["bids"][0]["p"]/2 + market_data[instruments[0]]["bids"][1]["p"]/2)
-        parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0]}      
+        parameter1 = {"BaseQty": order_results[1], "AddlQty": order_results[1] // 10, "OrderPrice": buyPrice, "Instr":instruments[0].instrumentId}      
         order = algo_client.sendOrder(algo_client, parameter1, side = Side.Sell)
        
         sellPrice = (market_data[instruments[1]]["bids"][0]["p"]/2 + market_data[instruments[1]]["bids"][1]["p"]/2)
-        parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1]}      
+        parameter2 = {"BaseQty": order_results[2], "AddlQty": order_results[2] // 10, "OrderPrice": buyPrice, "Instr":instruments[1].instrumentId}      
         order = algo_client.sendOrder(algo_client, parameter2, side = Side.Sell)
 
 
