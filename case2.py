@@ -5,13 +5,12 @@ from vollib import black_scholes as b_s
 from greeks_new import Greeks
 #import greeks_new.py as g
 from datetime import datetime
-import algo_client
 import time
-algo_client.ENV = "ext-prod-sim"
+
 
 def ourOrderBook(algo_client):
 
-	algo_name = "Case 2 Trial"
+	algo_name = "CASE2 Algorithm"
 
 	#getting the book
 	book = algo_client.getOrderBook()
@@ -34,25 +33,30 @@ def timeToExpiry(algo_client):
 def theoreticalPricer(algo_client):
 	calls = []
 	puts = []
-	given_strikes = [235000, 235500, 236000]
+	given_strikes = [233500, 234000, 234500,235000,235500]
+	strikes = ["C2335", "P2335", "C2340", "P2340", "C2345","P2345","C2350","P2350","C2355","P2355"] 
 	interest = .01
-	time_to_expiry = float(70/252)
-	greeks = Greeks(algo_client, "ESM7", given_strikes, .01, time_to_expiry)
+	time_to_expiry = float(60/252)
+	greeks = Greeks(algo_client, "ESM7", given_strikes, .01, .24)
 	iv = greeks.return_implied_vol()
 	for x in xrange(1,3):
 		calls.append(iv[given_strikes[x-1]][0])
 		puts.append(iv[given_strikes[x-1]][1])
 	theoreticalPrice = {}
-	for x in xrange(1,3): 
-		theoreticalPrice[ "C" + str(given_strikes[x-1])] = b_s.black_scholes('c',235000,given_strikes[x-1],time_to_expiry,.01,calls[x-1])
-		theoreticalPrice[ "P" + str(given_strikes[x-1])] = b_s.black_scholes('p',235000,given_strikes[x-1], time_to_expiry,.01,puts[x-1])
+	x = 0
+	while x < 5: 
+		theoreticalPrice[strikes[x]] = b_s.black_scholes('c',9830,given_strikes[x/2],.24,.01,calls[x/2])
+		theoreticalPrice[strikes[x+1]] = b_s.black_scholes('p',9830.5,given_strikes[x/2], .24,.01,puts[x/2])
+		x += 2
 	return theoreticalPrice
 		
 
 def orderExecutor(algo_client):
-	strikes = ["C2350", "C2355", "C2360", "P2350", "P2355","P2360"]
+	strikes = ["C2335", "P2335", "C2340", "P2340", "C2345","P2345","C2350","P2350","C2355","P2355"]
 	algo_name = "CASE2 algorithm"
 	algo_client.addAlgoInstrument(algo_name)
+	algo_parameters = algo_client.getUserParameters(algo_name)
+	algo_exportValues = algo_client.getExportValues(algo_name)
 	instrument = {}
 	for x in xrange(1,6):
 		instrument[strikes[x-1]] = algo_client.getExchangeInstrument(contract_name = "ESM7", strike = strikes[x-1])
@@ -78,12 +82,11 @@ def orderExecutor(algo_client):
 
 	theoretical_Price = theoreticalPricer(algo_client)
 	x = 0
-	for key in theoretical_Price.iteritems():
-			buyPrice = (best_bid_price[strikes[x]] + best_ask_price[strikes[x]])/2 + theoretical_Price[key] / 2 - .25
-			order = algo_client.sendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": buyPrice, "Instr":instrument.instrumentId}, side = Side.Buy )
-			sellPrice= (best_bid_price[strikes[x]] + best_ask_price[strikes[x]])/2 + theoreticalPrice[key] / 2 + .25
-			order = algo_client.SendOrder(algo_name, userparameters = {"BaseQty": 40, "AddlQty": 5, "OrderPrice": sellPrice, "Instr": instrument.instrumentId}, side = Side.Sell)
-			x += 1
+	for key,value in theoretical_Price.iteritems():
+		if value > best_ask_price[key]:
+			order = algo_client.sendOrder(algo_name, user_parameters = {"BaseQty": best_ask_qty[key], "OrderPrice": best_ask_price[key],"Instr": instrument[key].instrumentId}, side = Side.Buy )
+		if value < best_bid_price[key]:
+			order = algo_client.sendOrder(algo_name, user_parameters = {"BaseQty": best_bid_qty[key], "OrderPrice": best_bid_price[key],"Instr": instrument[key].instrumentId}, side = Side.Sell )
 
 ##def hedger(algo_client):
 #	position = algo_client.getPositions()
@@ -135,7 +138,7 @@ if __name__ == "__main__":
 	username = "mtcjhouse@gmail.com"
 	password = "jannotta2017!"
 
-	algo_client = Algo_Client(username, password)
+	algo_client = Algo_Client(username, password, es_ip = "uofc-edge-ext-prod-delayed.debesys.net")
 
     # register callbacks functions, a separate thread will be create for each callback type
 	algo_client.registerCallbacks(CallbackTypes.Orders, process_orders)
@@ -143,7 +146,6 @@ if __name__ == "__main__":
 	algo_client.registerCallbacks(CallbackTypes.Positions, process_positions, timeout=0.1)
 	time_start = time.time()
 	while (time.time() - time_start) < 900: 
-		theoreticalPricer(algo_client)
 		orderExecutor(algo_client)
 		##hedger(algo_client)
 
@@ -155,6 +157,7 @@ if __name__ == "__main__":
 
     # deleted/filled orders will remain in the book, need to check exec_type attribute (3=Cancelled, 4=Replaced, 14=Traded)
 	book = algo_client.getOrderBook()
+
 
 
 
